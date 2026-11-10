@@ -6,21 +6,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+
+      - name: Java Kurulumu
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
-      - uses: subosito/flutter-action@v2
+
+      - name: Flutter Kurulumu
+        uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.22.x'
           channel: 'stable'
-      - name: Eksik Android Dosyalarini Tamamla
-        run: flutter create --platforms=android .
-      - name: Paketleri Getir
+
+      - name: Eksiksiz Proje Iskeleti Olustur
+        run: |
+          mkdir temp_app
+          cd temp_app
+          flutter create --org com.sametli --project-name radyo_app .
+          cp -r android ../
+          cd ..
+          rm -rf temp_app
+
+      - name: Paketleri Cek
         run: flutter pub get
+
       - name: APK Derle
         run: flutter build apk --release
-      - name: APKyi Yukle
+
+      - name: APK Dosyasini Yukle
         uses: actions/upload-artifact@v4
         with:
           name: Reklamsiz-Radyo-APK
