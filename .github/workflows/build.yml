@@ -14,9 +14,14 @@ jobs:
         with:
           flutter-version: '3.22.x'
           channel: 'stable'
-      - run: flutter pub get
-      - run: flutter build apk --release
-      - uses: actions/upload-artifact@v4
+      - name: Eksik Android Dosyalarini Tamamla
+        run: flutter create --platforms=android .
+      - name: Paketleri Getir
+        run: flutter pub get
+      - name: APK Derle
+        run: flutter build apk --release
+      - name: APKyi Yukle
+        uses: actions/upload-artifact@v4
         with:
           name: Reklamsiz-Radyo-APK
-          path: build/app/outputs/flutter-apk/app-release.apk 
+          path: build/app/outputs/flutter-apk/app-release.apk
