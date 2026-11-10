@@ -73,7 +73,11 @@ class _RadioAppState extends State<RadioApp> {
 
     try {
       if (_currentIndex == index && _isPlaying) {
-        await _player.pause();
+        await _player.stop();
+        setState(() {
+          _isPlaying = false;
+          _isLoading = false;
+        });
         return;
       }
 
@@ -82,7 +86,15 @@ class _RadioAppState extends State<RadioApp> {
         _isLoading = true;
       });
 
-      await _player.setUrl(station.url);
+      await _player.stop();
+      // Canli Icecast akislarina radyo basligi ile baglan
+      await _player.setAudioSource(
+        AudioSource.uri(
+          Uri.parse(station.url),
+          headers: {'User-Agent': 'Mozilla/5.0 (Android; Mobile)'},
+        ),
+        preload: false,
+      );
       _player.play();
 
       setState(() {
@@ -90,6 +102,11 @@ class _RadioAppState extends State<RadioApp> {
       });
     } catch (e) {
       setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Bağlantı hatası: ${station.name}"), duration: const Duration(seconds: 2)),
+        );
+      }
       if (_isShuffle) _playNext();
     }
   }
