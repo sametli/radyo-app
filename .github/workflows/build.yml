@@ -19,7 +19,7 @@ jobs:
           flutter-version: '3.22.x'
           channel: 'stable'
 
-      - name: Eksiksiz Proje Iskeleti Olustur
+      - name: Proje Iskeletini Kur ve Bildirim Servisini Enjekte Et
         run: |
           mkdir temp_app
           cd temp_app
@@ -27,6 +27,17 @@ jobs:
           cp -r android ../
           cd ..
           rm -rf temp_app
+          
+          # 1. Internet, Foreground Service ve WakeLock izinlerini ekle
+          sed -i '/<application/i <uses-permission android:name="android.permission.INTERNET"/>\n<uses-permission android:name="android.permission.WAKE_LOCK"/>\n<uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>\n<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>' android/app/src/main/AndroidManifest.xml
+          
+          # 2. HTTP radyo yayinlari icin Cleartext iznini ekle
+          sed -i 's/<application/<application android:usesCleartextTraffic="true"/' android/app/src/main/AndroidManifest.xml
+
+          # 3. Bildirim cubugu icin AudioServiceActivity ve servisini ekle
+          sed -i 's/android:name=".MainActivity"/android:name="com.ryanheise.just_audio_background.AudioServiceActivity"/' android/app/src/main/AndroidManifest.xml
+          sed -i '/<\/activity>/a \
+          <service android:name="com.ryanheise.just_audio_background.AudioService"\n            android:foregroundServiceType="mediaPlayback"\n            android:exported="true">\n            <intent-filter>\n                <action android:name="android.media.browse.MediaBrowserService" />\n            </intent-filter>\n          </service>\n          <receiver android:name="androidx.media.session.MediaButtonReceiver"\n            android:exported="true">\n            <intent-filter>\n                <action android:name="android.intent.action.MEDIA_BUTTON" />\n            </intent-filter>\n          </receiver>' android/app/src/main/AndroidManifest.xml
 
       - name: Paketleri Cek
         run: flutter pub get
