@@ -1,25 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:just_audio_background/just_audio_background.dart';
+import 'package:audio_session/audio_session.dart';
 import 'dart:math';
 
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await JustAudioBackground.init(
-    androidNotificationChannelId: 'com.sametli.radyo.channel.audio',
-    androidNotificationChannelName: 'Radyo Calar',
-    androidNotificationOngoing: true,
-    androidStopForegroundOnPause: true,
-  );
+  final session = await AudioSession.instance;
+  await session.configure(const AudioSessionConfiguration.music());
   runApp(const MaterialApp(home: RadioApp(), debugShowCheckedModeBanner: false));
 }
 
 class Station {
-  final String id;
   final String name;
   final String country;
   final String url;
-  Station({required this.id, required this.name, required this.country, required this.url});
+  Station({required this.name, required this.country, required this.url});
 }
 
 class RadioApp extends StatefulWidget {
@@ -37,27 +32,27 @@ class _RadioAppState extends State<RadioApp> {
 
   final List<Station> _stations = [
     // --- AZƏRBAYCAN (RƏSMİ FM) ---
-    Station(id: "1", name: "106.3 FM (Bakı)", country: "AZ", url: "http://stream.aztv.az:8000/1063fm"),
-    Station(id: "2", name: "İctimai FM (90.0)", country: "AZ", url: "https://streaming.ictimaifm.az/ictimaifm"),
-    Station(id: "3", name: "ASAN Radio (100.0)", country: "AZ", url: "https://asanradio.az:8000/stream"),
-    Station(id: "4", name: "Azərbaycan Radiosu (105.0)", country: "AZ", url: "http://stream.aztv.az:8000/radio"),
-    Station(id: "5", name: "Media FM (105.5)", country: "AZ", url: "http://stream.mediafm.az:8000/mediafm"),
-    Station(id: "6", name: "Avto FM (107.7)", country: "AZ", url: "http://stream.autofm.az:8000/autofm"),
-    Station(id: "7", name: "Araz FM (103.3)", country: "AZ", url: "https://stream.zeno.fm/549w7v5v9tzuv"),
-    Station(id: "8", name: "Radio Space (104.0)", country: "AZ", url: "http://stream.spacefm.az:8000/spacefm"),
-    Station(id: "9", name: "Radio Antenn (101.0)", country: "AZ", url: "http://stream.antenn.az:8000/antenn"),
-    Station(id: "10", name: "Radio TMB (100.5)", country: "AZ", url: "https://stream.zeno.fm/v904v2e8c2quv"),
+    Station(name: "106.3 FM (Bakı)", country: "AZ", url: "http://stream.aztv.az:8000/1063fm"),
+    Station(name: "İctimai FM (90.0)", country: "AZ", url: "https://streaming.ictimaifm.az/ictimaifm"),
+    Station(name: "ASAN Radio (100.0)", country: "AZ", url: "https://asanradio.az:8000/stream"),
+    Station(name: "Azərbaycan Radiosu (105.0)", country: "AZ", url: "http://stream.aztv.az:8000/radio"),
+    Station(name: "Media FM (105.5)", country: "AZ", url: "http://stream.mediafm.az:8000/mediafm"),
+    Station(name: "Avto FM (107.7)", country: "AZ", url: "http://stream.autofm.az:8000/autofm"),
+    Station(name: "Araz FM (103.3)", country: "AZ", url: "https://stream.zeno.fm/549w7v5v9tzuv"),
+    Station(name: "Radio Space (104.0)", country: "AZ", url: "http://stream.spacefm.az:8000/spacefm"),
+    Station(name: "Radio Antenn (101.0)", country: "AZ", url: "http://stream.antenn.az:8000/antenn"),
+    Station(name: "Radio TMB (100.5)", country: "AZ", url: "https://stream.zeno.fm/v904v2e8c2quv"),
 
     // --- TÜRKİYE & İZMİR ---
-    Station(id: "11", name: "Diyanet Kur'an Radyo", country: "TR", url: "https://diyanet.radyotvonline.net/kuranradyo/playlist.m3u8"),
-    Station(id: "12", name: "İzmir Radyo Trafik (102.5)", country: "TR", url: "https://stream.radyotrafik.com:8000/radyotrafikizmir"),
-    Station(id: "13", name: "Radyo 35 (İzmir 89.0)", country: "TR", url: "http://yayin.radyo35.com.tr:8035/"),
-    Station(id: "14", name: "TRT FM", country: "TR", url: "https://rad-trt-fm.radyotvonline.net/trtfm/playlist.m3u8"),
-    Station(id: "15", name: "TRT Radyo 1", country: "TR", url: "https://rad-trt-radyo-1.radyotvonline.net/trtradyo1/playlist.m3u8"),
-    Station(id: "16", name: "TRT Türkü", country: "TR", url: "https://rad-trt-turku.radyotvonline.net/trtturku/playlist.m3u8"),
-    Station(id: "17", name: "Power FM", country: "TR", url: "https://listen.powerapp.com.tr/powerfm/mpeg/icecast.audio"),
-    Station(id: "18", name: "Slow Türk", country: "TR", url: "https://radyo.duhnet.tv/slowturk"),
-    Station(id: "19", name: "Kral Pop", country: "TR", url: "https://dygstream.radyotvonline.net/kralpophls/playlist.m3u8"),
+    Station(name: "Diyanet Kur'an Radyo", country: "TR", url: "https://diyanet.radyotvonline.net/kuranradyo/playlist.m3u8"),
+    Station(name: "İzmir Radyo Trafik (102.5)", country: "TR", url: "https://stream.radyotrafik.com:8000/radyotrafikizmir"),
+    Station(name: "Radyo 35 (İzmir 89.0)", country: "TR", url: "http://yayin.radyo35.com.tr:8035/"),
+    Station(name: "TRT FM", country: "TR", url: "https://rad-trt-fm.radyotvonline.net/trtfm/playlist.m3u8"),
+    Station(name: "TRT Radyo 1", country: "TR", url: "https://rad-trt-radyo-1.radyotvonline.net/trtradyo1/playlist.m3u8"),
+    Station(name: "TRT Türkü", country: "TR", url: "https://rad-trt-turku.radyotvonline.net/trtturku/playlist.m3u8"),
+    Station(name: "Power FM", country: "TR", url: "https://listen.powerapp.com.tr/powerfm/mpeg/icecast.audio"),
+    Station(name: "Slow Türk", country: "TR", url: "https://radyo.duhnet.tv/slowturk"),
+    Station(name: "Kral Pop", country: "TR", url: "https://dygstream.radyotvonline.net/kralpophls/playlist.m3u8"),
   ];
 
   @override
@@ -87,20 +82,7 @@ class _RadioAppState extends State<RadioApp> {
         _isLoading = true;
       });
 
-      // Bildirim ekranı için MediaItem bilgisi
-      final audioSource = AudioSource.uri(
-        Uri.parse(station.url),
-        tag: MediaItem(
-          id: station.id,
-          album: station.country == "AZ" ? "Azərbaycan Canlı Radio" : "Türkiye Canlı Radyo",
-          title: station.name,
-          artUri: Uri.parse(station.country == "AZ"
-              ? "https://flagcdn.com/w320/az.png"
-              : "https://flagcdn.com/w320/tr.png"),
-        ),
-      );
-
-      await _player.setAudioSource(audioSource);
+      await _player.setUrl(station.url);
       _player.play();
 
       setState(() {
@@ -148,12 +130,9 @@ class _RadioAppState extends State<RadioApp> {
         actions: [
           IconButton(
             icon: Icon(Icons.shuffle, color: _isShuffle ? Colors.cyanAccent : Colors.grey),
-            tooltip: "Karışık Çalma Modu",
+            tooltip: "Karışık Çalma",
             onPressed: () {
               setState(() => _isShuffle = !_isShuffle);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(_isShuffle ? "Shuffle Açık 🔀" : "Shuffle Kapalı"), duration: const Duration(seconds: 1)),
-              );
             },
           ),
           IconButton(
