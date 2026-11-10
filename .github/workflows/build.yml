@@ -19,7 +19,7 @@ jobs:
           flutter-version: '3.22.x'
           channel: 'stable'
 
-      - name: Proje Iskeletini Kur ve Manifesti Yaz
+      - name: Proje Iskeletini Kur ve Ag Izinlerini Yapilandir
         run: |
           mkdir temp_app
           cd temp_app
@@ -27,19 +27,34 @@ jobs:
           cp -r android ../
           cd ..
           rm -rf temp_app
-          
-          # Guvenli ve hatasiz AndroidManifest.xml dosyasini dogrudan olustur
+
+          # 1. Tum guvensiz HTTP/Port trafiklerine izin veren XML dosyasini olustur
+          mkdir -p android/app/src/main/res/xml
+          cat << 'EOF' > android/app/src/main/res/xml/network_security_config.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <network-security-config>
+              <base-config cleartextTrafficPermitted="true">
+                  <trust-anchors>
+                      <certificates src="system" />
+                      <certificates src="user" />
+                  </trust-anchors>
+              </base-config>
+          </network-security-config>
+          EOF
+
+          # 2. Manifest dosyasina bu guvenlik ayarini ve internet izinlerini bagla
           cat << 'EOF' > android/app/src/main/AndroidManifest.xml
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
               <uses-permission android:name="android.permission.INTERNET"/>
+              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
               <uses-permission android:name="android.permission.WAKE_LOCK"/>
-              <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
               <application
                   android:label="Net Radyo"
                   android:name="${applicationName}"
                   android:icon="@mipmap/ic_launcher"
-                  android:usesCleartextTraffic="true">
+                  android:usesCleartextTraffic="true"
+                  android:networkSecurityConfig="@xml/network_security_config">
                   <activity
                       android:name=".MainActivity"
                       android:exported="true"
