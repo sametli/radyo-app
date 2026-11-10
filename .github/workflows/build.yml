@@ -1,5 +1,17 @@
-name: APK Derleyici
-on: [push, workflow_dispatch]
+name: Web ve APK Derleyici
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -19,22 +31,19 @@ jobs:
           flutter-version: '3.22.x'
           channel: 'stable'
 
-      - name: Proje Iskeletini Kur ve Bildirim Servisini Enjekte Et
+      - name: Eksiksiz Proje Iskeletini Kur (Android ve Web)
         run: |
           mkdir temp_app
           cd temp_app
           flutter create --org com.sametli --project-name radyo_app .
           cp -r android ../
+          cp -r web ../
           cd ..
           rm -rf temp_app
           
-          # 1. Internet, Foreground Service ve WakeLock izinlerini ekle
+          # Android Izinleri
           sed -i '/<application/i <uses-permission android:name="android.permission.INTERNET"/>\n<uses-permission android:name="android.permission.WAKE_LOCK"/>\n<uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>\n<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>' android/app/src/main/AndroidManifest.xml
-          
-          # 2. HTTP radyo yayinlari icin Cleartext iznini ekle
           sed -i 's/<application/<application android:usesCleartextTraffic="true"/' android/app/src/main/AndroidManifest.xml
-
-          # 3. Bildirim cubugu icin AudioServiceActivity ve servisini ekle
           sed -i 's/android:name=".MainActivity"/android:name="com.ryanheise.just_audio_background.AudioServiceActivity"/' android/app/src/main/AndroidManifest.xml
           sed -i '/<\/activity>/a \
           <service android:name="com.ryanheise.just_audio_background.AudioService"\n            android:foregroundServiceType="mediaPlayback"\n            android:exported="true">\n            <intent-filter>\n                <action android:name="android.media.browse.MediaBrowserService" />\n            </intent-filter>\n          </service>\n          <receiver android:name="androidx.media.session.MediaButtonReceiver"\n            android:exported="true">\n            <intent-filter>\n                <action android:name="android.intent.action.MEDIA_BUTTON" />\n            </intent-filter>\n          </receiver>' android/app/src/main/AndroidManifest.xml
@@ -42,11 +51,30 @@ jobs:
       - name: Paketleri Cek
         run: flutter pub get
 
+      - name: Web Surumunu Derle
+        run: flutter build web --base-href "/radyo-app/" --release
+
       - name: APK Derle
         run: flutter build apk --release
 
-      - name: APK Dosyasini Yukle
+      - name: APK Dosyasini Yukle (Artifact)
         uses: actions/upload-artifact@v4
         with:
           name: Reklamsiz-Radyo-APK
           path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Web Sitesini Yayina Hazirla
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'build/web'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Web Sitesini Canliya Al
+        id: deployment
+        uses: actions/deploy-pages@v4
